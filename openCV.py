@@ -71,7 +71,7 @@ while(1):
      #find the defects in convex hull with respect to hand
         hull = cv2.convexHull(approx, returnPoints=False)
         defects = cv2.convexityDefects(approx, hull)
-        
+        print("defects",defects)
     # l = no. of defects
         l=0
         
@@ -111,7 +111,7 @@ while(1):
         
         #print corresponding gestures which are in their ranges
         font = cv2.FONT_HERSHEY_SIMPLEX
-	cv2.waitKey(1) 
+	# cv2.waitKey(1) 
         if l==1:
             if areacnt<2000:
                 cv2.putText(frame,'Put hand in the box',(0,50), font, 2, (0,0,255), 3, cv2.LINE_AA)
@@ -135,6 +135,7 @@ while(1):
         cv2.imshow('mask',mask)
         cv2.imshow('frame',frame)
     except:
+        print("except")
         pass
         
     
