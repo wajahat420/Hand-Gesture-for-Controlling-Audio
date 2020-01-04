@@ -4,7 +4,7 @@ import math
 import vlc
 import Block_face
 
-player = vlc.MediaPlayer("song.mp3")
+player = vlc.MediaPlayer("hussain_badshah.mp3")
 
 url = ('https://192.168.43.217:8080/video')
 cap = cv2.VideoCapture(0) 
@@ -18,27 +18,49 @@ while( cap.isOpened() ) :
 	img = cv2.flip(img, 1)
 
 
-	cv2.rectangle(img, (100, 100), (300, 300), (0, 255, 0), 0)
+	cv2.rectangle(img, (100, 100), (300, 300), (0, 255, 0), 2)
 	crop_image = img[100:300, 100:300]
 
 
+	hsv = cv2.cvtColor(crop_image, cv2.COLOR_BGR2HSV)
 
+	kernel = np.ones((3,3),np.uint8)
+
+         
+    # define range of skin color in HSV
+	# lower_skin = np.array([0,20,70], dtype=np.uint8)
+	# upper_skin = np.array([20,255,255], dtype=np.uint8)
+
+	# lower_skin = np.array([0, 10, 60], dtype = "uint8") 
+ 	# upper_skin = np.array([20, 150, 255], dtype = "uint8")
+        
+     #extract skin colur imagw  
+
+
+
+	lower_skin = np.array([0, 5, 60], dtype = "uint8") 
+	upper_skin = np.array([20, 150, 255], dtype = "uint8")
+
+	mask = cv2.inRange(hsv, lower_skin, upper_skin)
+      
+    #extrapolate the hand to fill dark spots within
+	mask = cv2.dilate(mask,kernel,iterations = 4)
 
 	gray = cv2.cvtColor(crop_image, cv2.COLOR_BGR2GRAY)
-	blur = cv2.GaussianBlur(gray,(5,5),0)
+	mask = cv2.GaussianBlur(mask,(5,5),0)
 
 
-	cv2.putText(img,'3=>Play',(450,150), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 4, cv2.LINE_AA)
+	cv2.putText(img,'1=>Play',(450,150), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 4, cv2.LINE_AA)
 	cv2.putText(img,'5=>Pause',(450,200), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 4, cv2.LINE_AA)
 
 
 	ret,thresh1 = cv2.threshold(gray,10,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-	image, contours, hierarchy = cv2.findContours(thresh1,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	image, contours, hierarchy = cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	
-	cnt = max(contours, key=lambda x: cv2.contourArea(x))
-
-	hull = cv2.convexHull(cnt)
 	try:
+		cnt = max(contours, key=lambda x: cv2.contourArea(x))
+
+		hull = cv2.convexHull(cnt)
 
 		#define area of hull and area of hand
 		areahull = cv2.contourArea(hull)
@@ -54,9 +76,6 @@ while( cap.isOpened() ) :
 		# finding convex hull
 		hull = cv2.convexHull(cnt,returnPoints = False)
 		defects = cv2.convexityDefects(cnt,hull)
-
-		cv2.imshow('drawing',drawing)   
-
 
 		count_defects = 0
 
@@ -82,41 +101,51 @@ while( cap.isOpened() ) :
 			# if angle > 90 draw a circle at the far point
 			if angle <= 90:
 				count_defects += 1
-				cv2.circle(crop_image, far, 2, [0, 0, 255], 2)
-			cv2.line(crop_image, start, end, [0, 255, 0], 2)
+			# 	cv2.circle(crop_image, far, 2, [0, 0, 255], 2)
+			# cv2.line(crop_image, start, end, [0, 255, 0], 2)
 
 		print("defects",count_defects)
 		# if areacnt<2000:
 		# 		cv2.putText(img,'Put hand in the box',(0,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,255), 3, cv2.LINE_AA)
-		# if count_defects == 0:
-		# 	if areacnt<2000:
-		# 		cv2.putText(img,'Put hand in the box',(0,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,255), 3, cv2.LINE_AA)
-		# 	else:
-		# 		pass
-				# if arearatio<12:
-				# 	cv2.putText(img,'0',(0,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,255), 3, cv2.LINE_AA)
+		if count_defects == 0:
+			if areacnt<2000:
+				pass
+				# cv2.putText(img,'Put hand in the box',(0,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,255), 3, cv2.LINE_AA)
+			else:
+				pass
+				if arearatio<12:
+					pass
+					# cv2.putText(img,'0',(50,450), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,255), 3, cv2.LINE_AA)
 				# elif arearatio<17.5:
 				# 	cv2.putText(img,'Best of luck',(0,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,255), 3, cv2.LINE_AA)
 					
-				# else:
-				# 	cv2.putText(img,'ONE',(0,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,255), 3, cv2.LINE_AA)
+				else:
+					player.play()
+					playing = True
+					# cv2.putText(img,'PLAY',(50,450), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,255), 3, cv2.LINE_AA)
 		# elif count_defects == 1:
-		# 	cv2.putText(img, "TWO", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,0,255), 2)
-		if count_defects == 2:
-			player.play()
-			playing = True
+		# 	cv2.putText(img, "TWO", (50, 450), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,0,255), 2)
+		# elif count_defects == 2:
+		# 	cv2.putText(img, "THREE", (50, 450), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,0,255), 2)
+		elif count_defects == 4:
+			player.stop()
+			playing = False
+			# cv2.putText(img, "STOP", (50, 450), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,0,255), 2)
+		# elif count_defects == 4:
+		# 	cv2.putText(img, "FIVE", (50, 450), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,0,255), 2)
+
 
 		# elif count_defects == 3:
 		# 	cv2.putText(img, "FOUR", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,0,255), 2)
-		elif count_defects == 4:
-			player.stop() 
-			playing = False
+		# elif count_defects == 4:
+		# 	player.stop() 
+		# 	playing = False
 		
 		if playing:
 			cv2.putText(img, "PLAYING...!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,0,255), 3)
 		else:
 			cv2.putText(img, "STOP...!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2,(0,0,255), 3)
-
+		# print("count_defects",count_defects)
 		
 
 	except:
@@ -124,8 +153,11 @@ while( cap.isOpened() ) :
 		pass
 
 
-	cv2.imshow('input',img)
-	cv2.imshow('threshold',thresh1)   
+	cv2.imshow('mask',mask)
+	# cv2.imshow('hull',hull)   
+	cv2.imshow('countors and defects',drawing)
+	cv2.imshow('image',img)
+   
 
 
 	k = cv2.waitKey(1)
