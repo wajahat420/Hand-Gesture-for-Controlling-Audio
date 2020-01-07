@@ -42,19 +42,13 @@ while( cap.isOpened() ) :
 	
 		angle = math.acos((b**2 + c**2 - a**2)/(2*b*c)) * 57
 
+		s = (a+b+c)/2
+		ar = math.sqrt(s*(s-a)*(s-b)*(s-c))
+		
+		#distance between point and convex hull
+		d=(2*ar)/a
 
-		calculate = s*(s-a)*(s-b)*(s-c)
-		if calculate > a and calculate > b and calculate > c:
-			ar = math.sqrt(calculate)
-			d=(2*ar)/a
-			# print("d",d)
-			# if d < 30:
-			# 	count_defects -= 1
-		else:
-			# print("else")
-			d = 5
-
-		if angle <= 90 :
+		if angle <= 90 and d > 30:
 			count_defects += 1
 			cv2.circle(crop_image, far, 2, [0, 0, 255], 2)
 		cv2.line(crop_image,start,end,[0,255,0],2)                
@@ -72,13 +66,13 @@ while( cap.isOpened() ) :
 	else:
 		pass
 
-	print("defects",count_defects)	
+	# print("defects",count_defects)	
 	# except:
 	# 	print("except")
 	# 	pass
+	cv2.imshow('input',img)
 	cv2.imshow('threshold',thresh1) 
 	cv2.imshow("contour and hull",drawing)  
-	cv2.imshow('input',img)
 
 
 
